@@ -1,0 +1,75 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Django secret key and environment variables
+.env
+*.env
+
+# Database files
+*.sqlite3
+db.sqlite3
+
+# PostgreSQL database dumps
+*.dump
+*.sql
+
+# Static and media files (optional, if using external storage like AWS S3)
+staticfiles/
+media/
+
+# Logs and debug files
+*.log
+logs/
+debug.log
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Python cache and package metadata
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Compiled C files
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Migrations cache (optional)
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/__pycache__/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy type checking
+.mypy_cache/
+
+# Security: Ignore SSH keys and credentials
+*.pem
+*.key
