@@ -16,12 +16,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from iMarket.views import home_view  # Import the home_view
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home_view, name="home"),  # API homepage response
-    path('users/', include('users.urls')),
-    path('transactions/', include('transactions.urls')),
-    path('chat/', include('chat.urls')),
+    
+    # JWT Authentication endpoints
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    # App URLs
+    path('api/users/', include('users.urls')),
+    path('api/transactions/', include('transactions.urls')),
+    path('api/chat/', include('chat.urls')),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
