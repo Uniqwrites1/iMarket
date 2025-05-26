@@ -9,6 +9,9 @@ from django.db.models import Q
 from django.utils import timezone
 import uuid
 
+# Import seller permission from markets app
+from markets.views import IsSellerPermission
+
 class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -120,3 +123,147 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         )
         
         return Response({"status": "Messages marked as read"}, status=status.HTTP_200_OK)
+
+
+class SellerMessagesViewSet(viewsets.ViewSet):
+    """API endpoints for seller messages"""
+    permission_classes = [IsSellerPermission]
+    
+    @action(detail=False, methods=['get'])
+    def conversations(self, request):
+        """Get all conversations initiated by users for this seller"""
+        seller = request.user
+        
+        # Get chat rooms where this seller is a participant
+        chat_rooms = ChatRoom.objects.filter(participants=seller)
+        
+        # Only get rooms with exactly 2 participants (private chats)
+        private_rooms = []
+        for room in chat_rooms:
+            if room.participants.count() == 2:
+                private_rooms.append(room)
+        
+        # Serialize the rooms with additional info about the other participant
+        result = []
+        for room in private_rooms:
+            # Get the other participant (not the seller)
+            other_user = room.participants.exclude(id=seller.id).first()
+            
+            if other_user:
+                # Get the latest message
+                latest_message = ChatMessage.objects.filter(room=room).order_by('-timestamp').first()
+                
+                # Count unread messages
+                unread_count = ChatMessage.objects.filter(
+                    room=room,
+                    sender=other_user,
+                    is_read=False
+                ).count()
+                
+                result.append({
+                    'room_id': room.id,
+                    'user': {
+                        'id': other_user.id,
+                        'username': other_user.username,
+                        'first_name': other_user.first_name,
+                        'last_name': other_user.last_name,
+                        'profile_picture': request.build_absolute_uri(other_user.profile_picture.url) if other_user.profile_picture else None
+                    },
+                    'last_message': ChatMessageSerializer(latest_message).data if latest_message else None,
+                    'unread_count': unread_count
+                })
+        
+        # Sort by latest message time
+        result.sort(key=lambda x: x.get('last_message', {}).get('timestamp', ''), reverse=True)
+        
+        return Response(result)
+    
+    @action(detail=True, methods=['get'])
+    def user_conversation(self, request, pk=None):
+        """Get conversation with a specific user"""
+        seller = request.user
+        
+        try:
+            user = User.objects.get(pk=pk, role=User.ROLE_USER)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Find a chat room between these users, or create one
+        chat_rooms = ChatRoom.objects.filter(participants=seller).filter(participants=user)
+        
+        # Filter to rooms with exactly 2 participants
+        room = None
+        for candidate in chat_rooms:
+            if candidate.participants.count() == 2:
+                room = candidate
+                break
+        
+        # Create a new room if one doesn't exist
+        if room is None:
+            room = ChatRoom.objects.create(name=f"Chat with {user.username}")
+            room.participants.add(seller, user)
+        
+        # Get all messages
+        messages = ChatMessage.objects.filter(room=room).order_by('timestamp')
+        
+        # Mark messages as read
+        ChatMessage.objects.filter(
+            room=room, 
+            sender=user,
+            is_read=False
+        ).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
+        
+        room_data = ChatRoomSerializer(room).data
+        messages_data = ChatMessageSerializer(messages, many=True).data
+        
+        return Response({
+            'room': room_data,
+            'messages': messages_data,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name
+            }
+        })
+    
+    @action(detail=True, methods=['post'])
+    def send_message(self, request, pk=None):
+        """Send a message to a specific user"""
+        seller = request.user
+        content = request.data.get('content')
+        
+        if not content:
+            return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(pk=pk, role=User.ROLE_USER)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Find a chat room between these users, or create one
+        chat_rooms = ChatRoom.objects.filter(participants=seller).filter(participants=user)
+        
+        # Filter to rooms with exactly 2 participants
+        room = None
+        for candidate in chat_rooms:
+            if candidate.participants.count() == 2:
+                room = candidate
+                break
+        
+        # Create a new room if one doesn't exist
+        if room is None:
+            room = ChatRoom.objects.create(name=f"Chat with {user.username}")
+            room.participants.add(seller, user)
+        
+        # Create the message
+        message = ChatMessage.objects.create(
+            room=room,
+            sender=seller,
+            content=content
+        )
+        
+        return Response(ChatMessageSerializer(message).data)

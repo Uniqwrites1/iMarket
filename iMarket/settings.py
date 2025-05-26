@@ -36,12 +36,14 @@ INSTALLED_APPS = [
     'users',
     'transactions',
     'chat',
+    'markets',
 
     # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',  # Added for JWT authentication
     'corsheaders',
     'channels',  # Added for WebSockets
+    'phonenumber_field',  # Added for phone number validation
 ]
 
 MIDDLEWARE = [
@@ -181,3 +183,40 @@ CHANNEL_LAYERS = {
         # },
     },
 }
+
+# Email Configuration
+# For development, use console backend to avoid email setup issues
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'imarket@example.com')
+
+# SMS Configuration for OTP
+SMS_API_KEY = os.getenv('SMS_API_KEY', '')
+SMS_SENDER_ID = os.getenv('SMS_SENDER_ID', 'iMarket')
+
+# Twilio Configuration for SMS OTP
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
+
+# Navigation and Mapping API Configuration
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+MAPBOX_ACCESS_TOKEN = os.getenv('MAPBOX_ACCESS_TOKEN', '')
+
+# Navigation System Settings
+DEFAULT_NAVIGATION_RADIUS_METERS = int(os.getenv('DEFAULT_NAVIGATION_RADIUS_METERS', '100'))
+MAX_NAVIGATION_RADIUS_METERS = int(os.getenv('MAX_NAVIGATION_RADIUS_METERS', '1000'))
+INDOOR_NAVIGATION_ENABLED = os.getenv('INDOOR_NAVIGATION_ENABLED', 'True') == 'True'
+OUTDOOR_NAVIGATION_ENABLED = os.getenv('OUTDOOR_NAVIGATION_ENABLED', 'True') == 'True'
+
+# JWT Token Configuration
+JWT_ACCESS_TOKEN_LIFETIME_MINUTES = int(os.getenv('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', '60'))
+JWT_REFRESH_TOKEN_LIFETIME_DAYS = int(os.getenv('JWT_REFRESH_TOKEN_LIFETIME_DAYS', '7'))
