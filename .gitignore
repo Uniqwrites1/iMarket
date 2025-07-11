@@ -10,6 +10,12 @@ env/
 # Django secret key and environment variables
 .env
 *.env
+.env.local
+.env.production
+.env.development
+
+# Security: Never commit actual environment files with credentials
+# Only commit .env.template files
 
 # Database files
 *.sqlite3

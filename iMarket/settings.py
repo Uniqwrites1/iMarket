@@ -8,6 +8,7 @@ from pathlib import Path
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
+import dj_database_url
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,7 +22,11 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "your-default-secret-key")  # Load f
 # SECURITY WARNING: Don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"  # Read from .env
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if os.getenv("DJANGO_ALLOWED_HOSTS") else []
+
+# For Render deployment
+if os.getenv("RENDER"):
+    ALLOWED_HOSTS.append("*")  # Render handles the domain routing
 
 # Application definition
 INSTALLED_APPS = [
@@ -48,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Added for static files on Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -78,16 +84,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'iMarket.wsgi.application'
 
 # Database Configuration
-DATABASES = {
-    'default': {
-        'ENGINE': os.getenv("DB_ENGINE", 'django.db.backends.postgresql'),
-        'NAME': os.getenv("DB_NAME", "iMarket_backend"),
-        'USER': os.getenv("DB_USER", "samson"),
-        'PASSWORD': os.getenv("DB_PASSWORD", "Secret"),
-        'HOST': os.getenv("DB_HOST", "localhost"),
-        'PORT': os.getenv("DB_PORT", "5432"),
+if os.getenv("DATABASE_URL"):
+    # Production database (Render PostgreSQL)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Development database
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv("DB_ENGINE", 'django.db.backends.postgresql'),
+            'NAME': os.getenv("DB_NAME", "iMarket_backend"),
+            'USER': os.getenv("DB_USER", "samson"),
+            'PASSWORD': os.getenv("DB_PASSWORD", "Secret"),
+            'HOST': os.getenv("DB_HOST", "localhost"),
+            'PORT': os.getenv("DB_PORT", "5432"),
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -116,6 +133,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Ensure the static directory exists before adding it
 STATICFILES_DIRS = []
@@ -123,7 +141,8 @@ static_path = os.path.join(BASE_DIR, "static")
 if os.path.exists(static_path):
     STATICFILES_DIRS.append(static_path)
 
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+# WhiteNoise configuration for production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'

@@ -40,15 +40,20 @@ DB_PORT=5432
 
 ### 📧 Email Configuration (REQUIRED for OTP)
 
-#### Gmail SMTP
+#### Gmail SMTP - ✅ CONFIGURED
 ```bash
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USE_TLS=True
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-app-specific-password
-DEFAULT_FROM_EMAIL=noreply@yourdomain.com
+EMAIL_HOST_USER=adeniyiokunoye202020@gmail.com
+EMAIL_HOST_PASSWORD=wwcm zyyc rmsp fjzx
+DEFAULT_FROM_EMAIL=iMarket <adeniyiokunoye202020@gmail.com>
 ```
+
+**✅ Gmail Setup Status:**
+- Email: `adeniyiokunoye202020@gmail.com`
+- App Password: `wwcm zyyc rmsp fjzx`
+- Ready for OTP email delivery
 
 **Gmail Setup Steps:**
 1. Enable 2-Factor Authentication
@@ -78,13 +83,18 @@ TWILIO_PHONE_NUMBER=+1234567890
 
 #### Google Maps
 ```bash
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+GOOGLE_MAPS_API_KEY=AIzaSyC40r6UnxIHqT452IytpkY92MK8aeq-108
 ```
 
 **Google Maps Setup:**
 1. Go to Google Cloud Console
 2. Enable Maps JavaScript API, Places API, Directions API
 3. Create API key and restrict it to your domain
+
+**✅ Current API Key Status:**
+- API Key: `AIzaSyC40r6UnxIHqT452IytpkY92MK8aeq-108`
+- All map services enabled
+- Ready for production use
 
 #### Mapbox (Alternative)
 ```bash
@@ -208,10 +218,107 @@ CORS_ALLOW_ALL_ORIGINS=False
 - Don't use wildcard (*) in production
 - Check preflight requests
 
-## 📞 Support
+## 🚀 Render.com Deployment Guide
 
-For deployment issues:
-1. Check Django logs
-2. Verify environment variables
-3. Test individual services
-4. Check firewall and network settings
+### Step 1: Create New Web Service
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Click "New +" → "Web Service"
+3. Connect your GitHub repository
+4. Configure the service:
+   - **Name**: `imarket-backend`
+   - **Environment**: `Python 3`
+   - **Build Command**: `./build.sh`
+   - **Start Command**: `gunicorn iMarket.wsgi:application`
+   - **Instance Type**: `Free` (or `Starter` for better performance)
+
+### Step 2: Add Environment Variables
+In your Render service dashboard, add these environment variables:
+
+#### Required Environment Variables:
+```bash
+# Django Configuration
+DJANGO_SECRET_KEY=your-super-secret-django-key-here-make-it-long-and-random
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=imarket.onrender.com
+DATABASE_URL=postgresql://username:password@hostname:port/database_name
+RENDER=1
+
+# Google Maps API (✅ CONFIGURED)
+GOOGLE_MAPS_API_KEY=AIzaSyC40r6UnxIHqT452IytpkY92MK8aeq-108
+
+# Email Configuration (Gmail) - ✅ CONFIGURED
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=adeniyiokunoye202020@gmail.com
+EMAIL_HOST_PASSWORD=wwcm zyyc rmsp fjzx
+DEFAULT_FROM_EMAIL=iMarket <adeniyiokunoye202020@gmail.com>
+
+# SMS Configuration (Twilio)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=+1234567890
+
+# CORS Configuration
+CORS_ALLOW_ALL_ORIGINS=False
+```
+
+### Step 3: Add PostgreSQL Database
+1. In Render Dashboard, click "New +" → "PostgreSQL"
+2. Configure:
+   - **Name**: `imarket-database`
+   - **Database**: `imarket_production`
+   - **User**: `imarket_user`
+   - **Region**: Same as your web service
+3. Copy the **External Database URL** and add it as `DATABASE_URL` in your web service environment variables
+
+### Step 4: Deploy
+1. Push your code to GitHub (if not already done)
+2. Render will automatically build and deploy
+3. Check the build logs for any errors
+4. Your app will be available at `https://your-app-name.onrender.com`
+
+### Step 5: Post-Deployment Setup
+After successful deployment, you need to:
+
+1. **Create Superuser** (via Render Shell):
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+2. **Access Admin Panel**:
+   Go to `https://your-app-name.onrender.com/admin/`
+
+### 📋 Render Deployment Checklist
+- [ ] Repository connected to Render
+- [ ] `requirements.txt` file present
+- [ ] `build.sh` script created
+- [ ] Environment variables configured
+- [ ] PostgreSQL database created and connected
+- [ ] Build successful
+- [ ] Deployment successful
+- [ ] Superuser created
+- [ ] Admin panel accessible
+- [ ] API endpoints working
+
+### 🔧 Common Render Issues & Solutions
+
+#### Build Fails
+- Check `requirements.txt` for correct package versions
+- Ensure `build.sh` has proper permissions
+- Review build logs for specific errors
+
+#### Database Connection Issues
+- Verify `DATABASE_URL` is correctly set
+- Ensure database and web service are in same region
+- Check database is not sleeping (upgrade to paid plan if needed)
+
+#### Static Files Not Loading
+- Ensure `WhiteNoise` is properly configured
+- Check `STATIC_ROOT` and `STATICFILES_STORAGE` settings
+- Verify `collectstatic` runs during build
+
+#### Environment Variables Not Working
+- Double-check variable names (case-sensitive)
+- Ensure no extra spaces in values
+- Restart service after adding variables
