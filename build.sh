@@ -5,19 +5,21 @@ set -o errexit
 # Install dependencies
 pip install -r requirements.txt
 
-# Use SQLite for static file collection (no DB connection needed)
-export DATABASE_URL_TEMP=$DATABASE_URL
-unset DATABASE_URL
+# Force SQLite during build to avoid PostgreSQL issues
+export DJANGO_SETTINGS_MODULE=iMarket.settings
+export DATABASE_URL=""
+export RENDER_BUILD=true
 
-# Collect static files
+# Collect static files (using SQLite fallback)
 python manage.py collectstatic --no-input --clear
 
-# Restore DATABASE_URL and run migrations
-export DATABASE_URL=$DATABASE_URL_TEMP
+# Remove build flag
+unset RENDER_BUILD
 
-# Run migrations (only if DATABASE_URL is set)
-if [ -n "$DATABASE_URL" ]; then
+# Run migrations only if we have a real DATABASE_URL
+if [ -n "$DATABASE_URL_EXTERNAL" ]; then
+    export DATABASE_URL=$DATABASE_URL_EXTERNAL
     python manage.py migrate
 else
-    echo "DATABASE_URL not set, skipping migrations"
+    echo "No external database URL provided, skipping migrations"
 fi

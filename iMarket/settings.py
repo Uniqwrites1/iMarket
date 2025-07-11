@@ -84,26 +84,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'iMarket.wsgi.application'
 
 # Database Configuration
-if os.getenv("DATABASE_URL"):
-    # Production database (Render PostgreSQL)
+# Force SQLite during build time to avoid PostgreSQL connection issues
+if os.getenv("RENDER_BUILD") == "true" or not os.getenv("DATABASE_URL"):
+    # Build time or development - use SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    # Production runtime with DATABASE_URL
     DATABASES = {
         'default': dj_database_url.config(
             default=os.getenv("DATABASE_URL"),
             conn_max_age=600,
             conn_health_checks=True,
         )
-    }
-else:
-    # Development database
-    DATABASES = {
-        'default': {
-            'ENGINE': os.getenv("DB_ENGINE", 'django.db.backends.postgresql'),
-            'NAME': os.getenv("DB_NAME", "iMarket_backend"),
-            'USER': os.getenv("DB_USER", "samson"),
-            'PASSWORD': os.getenv("DB_PASSWORD", "Secret"),
-            'HOST': os.getenv("DB_HOST", "localhost"),
-            'PORT': os.getenv("DB_PORT", "5432"),
-        }
     }
 
 # Password validation
