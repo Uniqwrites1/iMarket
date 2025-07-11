@@ -5,8 +5,12 @@ set -o errexit
 # Install dependencies
 pip install -r requirements.txt
 
-# Collect static files
-python manage.py collectstatic --no-input
+# Collect static files (disable database operations)
+python manage.py collectstatic --no-input --clear
 
-# Run migrations
-python manage.py migrate
+# Run migrations (only if DATABASE_URL is set)
+if [ -n "$DATABASE_URL" ]; then
+    python manage.py migrate
+else
+    echo "DATABASE_URL not set, skipping migrations"
+fi
