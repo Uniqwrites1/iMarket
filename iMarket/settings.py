@@ -214,15 +214,6 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'imarket@example.com')
 
-# SMS Configuration for OTP
-SMS_API_KEY = os.getenv('SMS_API_KEY', '')
-SMS_SENDER_ID = os.getenv('SMS_SENDER_ID', 'iMarket')
-
-# Twilio Configuration for SMS OTP
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
-TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
-TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
-
 # Navigation and Mapping API Configuration
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
 MAPBOX_ACCESS_TOKEN = os.getenv('MAPBOX_ACCESS_TOKEN', '')

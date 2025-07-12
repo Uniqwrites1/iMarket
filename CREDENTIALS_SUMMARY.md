@@ -26,21 +26,14 @@ EMAIL_HOST_PASSWORD=your-gmail-app-password
 DEFAULT_FROM_EMAIL=noreply@yourdomain.com
 ```
 
-### 4. **SMS for OTP** (REQUIRED)
-```bash
-TWILIO_ACCOUNT_SID=your_twilio_sid
-TWILIO_AUTH_TOKEN=your_twilio_token
-TWILIO_PHONE_NUMBER=+1234567890
-```
-
-### 5. **Maps/Navigation** (REQUIRED)
+### 4. **Maps/Navigation** (REQUIRED)
 ```bash
 GOOGLE_MAPS_API_KEY=your_google_maps_key
 # OR
 MAPBOX_ACCESS_TOKEN=your_mapbox_token
 ```
 
-### 6. **Redis for WebSockets** (Production)
+### 5. **Redis for WebSockets** (Production)
 ```bash
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
